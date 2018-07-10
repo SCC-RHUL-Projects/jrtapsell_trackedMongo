@@ -1,0 +1,6 @@
+[submodule "mongo"]
+	path = mongo
+	url = ssh://git@localhost:9022/zcva821/mongoFork.git
+[submodule "cluster"]
+	path = cluster
+	url = ssh://git@localhost:9022/zcva821/cluster-manager.git
