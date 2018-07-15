@@ -27,7 +27,7 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
         output.services[containerName] = {
             container_name: containerName,
             image: "mongo_patched",
-            command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017`,
+            command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017 --bind_ip 0.0.0.0`,
             volumes: [
                 "/etc/localtime:/etc/localtime:ro",
                 `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.prov:/provenance`,
@@ -50,7 +50,7 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
     output.services[name] = {
         container_name: name,
         image: "mongo_patched",
-        command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017",
+        command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017 --bind_ip 0.0.0.0",
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
             `$PWD/logs/mongo_config${configNumber}.prov:/provenance`,
