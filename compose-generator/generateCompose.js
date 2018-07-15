@@ -5,6 +5,7 @@ const NUMBER_OF_SHARDS = 2;
 const NUMBER_OF_NODES_PER_SHARD = 3;
 const NUMBER_OF_CONFIGS = 3;
 const NUMBER_OF_ROUTERS = 2;
+
 function humanRange(count) {
     return _.range(1, count+1)
 }
@@ -96,6 +97,7 @@ output.services["shard-viewer"] = {
     ],
     depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`)
 };
+
 output.services["mongo-express-config"] = {
     container_name: "mongo-express-config",
     image: "mongo-express",
@@ -109,14 +111,7 @@ output.services["mongo-express-config"] = {
     ]
 };
 
+console.log(JSON.stringify(output));
+console.log(JSON.stringify(yaml.readSync("./target.yml")));
 
-
-
-console.log(JSON.stringify(output))
-console.log(JSON.stringify(yaml.readSync("./target.yml")))
-
-yaml.writeSync("../cluster/mongo-sharded/docker-compose.yml", output)
-
-
-
-
+yaml.writeSync("../cluster/mongo-sharded/docker-compose.yml", output);
