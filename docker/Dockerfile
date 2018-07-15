@@ -4,4 +4,9 @@ ADD ./mongod /usr/bin/mongod
 RUN touch /provenance
 RUN chown mongodb:mongodb /provenance
 RUN chmod 666 /provenance
+RUN touch /stdout
+RUN chown mongodb:mongodb /stdout
+RUN chmod 666 /stdout
 RUN apt-get update && apt-get install libcurl3-gnutls
+ADD ./entry.sh /entry.sh
+ENTRYPOINT ["/entry.sh"]
