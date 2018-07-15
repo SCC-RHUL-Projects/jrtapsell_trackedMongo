@@ -30,7 +30,8 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
             command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017`,
             volumes: [
                 "/etc/localtime:/etc/localtime:ro",
-                "$PWD/logs/mongo_shard2_node2:/provenance"
+                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.prov:/provenance`,
+                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.std:/stdout`
             ],
             ports: [
                 `271${shardNumber}${nodeNumber}:27017`
@@ -51,7 +52,8 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017",
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
-            "$PWD/logs/mongo_config1:/provenance"
+            `$PWD/logs/mongo_config${configNumber}.prov:/provenance`,
+            `$PWD/logs/mongo_config${configNumber}.std:/stdout`
         ],
         ports: [
             `2720${configNumber}:27017`
@@ -74,7 +76,8 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         ],
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
-            "$PWD/logs/mongos1:/provenance"
+            `$PWD/logs/mongos${routerNumber}.prov:/provenance`,
+            `$PWD/logs/mongos${routerNumber}.std:/stdout`
         ],
         tmpfs: [
             "/data/db"
@@ -90,21 +93,6 @@ output.services["shard-viewer"] = {
     ],
     depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`)
 };
-
-/*
-mongo-express-config:
-        container_name: mongo-express-config
-        image: mongo-express
-        depends_on:
-            - mongo_config1
-            - mongo_config2
-            - mongo_config3
-        ports:
-            - '8083:8081'
-        environment:
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-            - 'ME_CONFIG_MONGODB_SERVER=mongo_config1,mongo_config2,mongo_config3'
- */
 output.services["mongo-express-config"] = {
     container_name: "mongo-express-config",
     image: "mongo-express",
