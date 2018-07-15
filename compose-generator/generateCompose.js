@@ -31,7 +31,8 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
             volumes: [
                 "/etc/localtime:/etc/localtime:ro",
                 `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.prov:/provenance`,
-                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.std:/stdout`
+                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stdout:/stdout`,
+                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stderr:/stderr`
             ],
             ports: [
                 `271${shardNumber}${nodeNumber}:27017`
@@ -53,7 +54,8 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
             `$PWD/logs/mongo_config${configNumber}.prov:/provenance`,
-            `$PWD/logs/mongo_config${configNumber}.std:/stdout`
+            `$PWD/logs/mongo_config${configNumber}.stdout:/stdout`,
+            `$PWD/logs/mongo_config${configNumber}.stderr:/stderr`,
         ],
         ports: [
             `2720${configNumber}:27017`
@@ -77,7 +79,8 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
             `$PWD/logs/mongos${routerNumber}.prov:/provenance`,
-            `$PWD/logs/mongos${routerNumber}.std:/stdout`
+            `$PWD/logs/mongos${routerNumber}.stdout:/stdout`,
+            `$PWD/logs/mongos${routerNumber}.stderr:/stderr`
         ],
         tmpfs: [
             "/data/db"

@@ -1,2 +1,2 @@
 #!/bin/bash
-$@ > /stdout
+$@ > /stdout 2> /stderr
