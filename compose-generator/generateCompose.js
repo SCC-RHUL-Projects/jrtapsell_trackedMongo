@@ -18,7 +18,7 @@ function forHumanRange(count, action) {
 
 /*
 IP Allocations
-- 198.18
+- 10.24
     - 0 = ADMIN
         - 1 = GATEWAY
     - 1 = Shards
@@ -40,10 +40,10 @@ const output = {
         clusternet: {
             driver: "bridge",
             ipam: {
-                config: {
-                    subnet: "198.18.0.0/16",
-                    gateway: "198.18.0.1"
-                }
+                config: [{
+                    subnet: "10.24.0.0/16",
+                    gateway: "10.24.0.1"
+                }]
             }
         }
     }
@@ -72,7 +72,7 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
             ],
             networks: {
                 clusternet: {
-                    ipv4_address: `198.18.1.${shardNumber}${nodeNumber}`
+                    ipv4_address: `10.24.1.${shardNumber}${nodeNumber}`
                 }
             }
         }
@@ -100,7 +100,7 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         ],
         networks: {
             clusternet: {
-                ipv4_address: `198.18.2.${configNumber}`
+                ipv4_address: `10.24.2.${configNumber}`
             }
         }
     }
@@ -138,7 +138,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         ],
         networks: {
             clusternet: {
-                ipv4_address: `198.18.3.${routerNumber}`
+                ipv4_address: `10.24.3.${routerNumber}`
             }
         }
     };
@@ -146,7 +146,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     output.services[viewerName] = {
         "container_name": viewerName,
         image: "mongo-express",
-        "depends-on": [
+        "depends_on": [
             nodeName
         ],
         ports: [
@@ -158,7 +158,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         ],
         networks: {
             clusternet: {
-                ipv4_address: `198.18.4.${routerNumber}`
+                ipv4_address: `10.24.4.${routerNumber}`
             }
         }
     }
@@ -173,7 +173,7 @@ output.services["shard-viewer"] = {
     depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`),
     networks: {
         clusternet: {
-            ipv4_address: `198.18.5.1`
+            ipv4_address: `10.24.5.1`
         }
     }
 };
@@ -191,7 +191,7 @@ output.services["mongo-express-config"] = {
     ],
     networks: {
         clusternet: {
-            ipv4_address: `198.18.5.2`
+            ipv4_address: `10.24.5.2`
         }
     }
 };
