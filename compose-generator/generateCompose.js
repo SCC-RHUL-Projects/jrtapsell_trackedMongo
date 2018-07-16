@@ -15,9 +15,38 @@ function forHumanRange(count, action) {
             action(d)
         })
 }
+
+/*
+IP Allocations
+- 198.18
+    - 0 = ADMIN
+        - 1 = GATEWAY
+    - 1 = Shards
+        - XY = SHARD Y OF X
+    - 2 = Configs
+        - X = Config server X
+    - 3 = Routers
+        - X = Router X
+    - 4 = Router Viewers
+        - X = Router viewer X
+    - 5 = Viewers
+        - 1 = Shard Viewer
+        - 2 = Config viewer
+ */
 const output = {
     version: "2",
-    services: {}
+    services: {},
+    networks: {
+        clusternet: {
+            driver: "bridge",
+            ipam: {
+                config: {
+                    subnet: "198.18.0.0/16",
+                    gateway: "198.18.0.1"
+                }
+            }
+        }
+    }
 };
 
 // Shard Nodes
@@ -40,7 +69,12 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
             ],
             tmpfs: [
                 "/data/db"
-            ]
+            ],
+            networks: {
+                clusternet: {
+                    ipv4_address: `198.18.1.${shardNumber}${nodeNumber}`
+                }
+            }
         }
     })
 });
@@ -63,10 +97,26 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         ],
         tmpfs: [
             "/data/db"
-        ]
+        ],
+        networks: {
+            clusternet: {
+                ipv4_address: `198.18.2.${configNumber}`
+            }
+        }
     }
 });
-
+/*
+mongo-express-data1:
+        container_name: mongo-express-data1
+        image: mongo-express
+        depends_on:
+            - mongos1
+        ports:
+            - '8081:8081'
+        environment:
+            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+            - ME_CONFIG_MONGODB_SERVER=mongos1
+ */
 forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     const nodeName = `mongos${routerNumber}`;
     output.services[nodeName] = {
@@ -85,8 +135,33 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         ],
         tmpfs: [
             "/data/db"
-        ]
+        ],
+        networks: {
+            clusternet: {
+                ipv4_address: `198.18.3.${routerNumber}`
+            }
+        }
     };
+    const viewerName = `mongo-express-data${routerNumber}`;
+    output.services[viewerName] = {
+        "container_name": viewerName,
+        image: "mongo-express",
+        "depends-on": [
+            nodeName
+        ],
+        ports: [
+            `808${routerNumber}:8081`
+        ],
+        environment: [
+            "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
+            `ME_CONFIG_MONGODB_SERVER=${nodeName}`
+        ],
+        networks: {
+            clusternet: {
+                ipv4_address: `198.18.4.${routerNumber}`
+            }
+        }
+    }
 });
 
 output.services["shard-viewer"] = {
@@ -95,7 +170,12 @@ output.services["shard-viewer"] = {
     ports: [
         "8084:3000"
     ],
-    depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`)
+    depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`),
+    networks: {
+        clusternet: {
+            ipv4_address: `198.18.5.1`
+        }
+    }
 };
 
 output.services["mongo-express-config"] = {
@@ -108,7 +188,12 @@ output.services["mongo-express-config"] = {
     environment: [
         "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
         "ME_CONFIG_MONGODB_SERVER=mongo_config1,mongo_config2,mongo_config3"
-    ]
+    ],
+    networks: {
+        clusternet: {
+            ipv4_address: `198.18.5.2`
+        }
+    }
 };
 
 console.log(JSON.stringify(output));
