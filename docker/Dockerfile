@@ -1,6 +1,6 @@
-from mongo:4.0-rc-xenial
-ADD ./mongos /usr/bin/mongos
-ADD ./mongod /usr/bin/mongod
+FROM mongo:4.0-rc-xenial
+
+ENTRYPOINT ["/entry.sh"]
 
 RUN touch /provenance
 RUN chown mongodb:mongodb /provenance
@@ -15,5 +15,7 @@ RUN chown mongodb:mongodb /stderr
 RUN chmod 666 /stderr
 
 RUN apt-get update && apt-get install libcurl3-gnutls
+
 ADD ./entry.sh /entry.sh
-ENTRYPOINT ["/entry.sh"]
+ADD ./mongos /usr/bin/mongos
+ADD ./mongod /usr/bin/mongod
