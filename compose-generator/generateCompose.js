@@ -65,7 +65,7 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
                 `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stderr:/stderr`
             ],
             ports: [
-                `271${shardNumber}${nodeNumber}:27017`
+                `127.0.0.1:271${shardNumber}${nodeNumber}:27017`
             ],
             tmpfs: [
                 "/data/db"
@@ -93,7 +93,7 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
             `$PWD/logs/mongo_config${configNumber}.stderr:/stderr`,
         ],
         ports: [
-            `2720${configNumber}:27017`
+            `127.0.0.1:2720${configNumber}:27017`
         ],
         tmpfs: [
             "/data/db"
@@ -125,7 +125,8 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         depends_on: humanRange(2).map(p => `mongo_config${p}`),
         command: "mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017 --port 27017 --bind_ip 0.0.0.0",
         ports: [
-            `2730${routerNumber}:27017`
+            `127.0.0.1:2730${routerNumber}:27017`,
+            `0.0.0.0:${27016+routerNumber}:27017`
         ],
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
@@ -150,7 +151,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
             nodeName
         ],
         ports: [
-            `808${routerNumber}:8081`
+            `127.0.0.1:808${routerNumber}:8081`
         ],
         environment: [
             "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
@@ -168,7 +169,7 @@ output.services["shard-viewer"] = {
     container_name: "shard-viewer",
     image: "shard-viewer",
     ports: [
-        "8084:3000"
+        "127.0.0.1:8084:3000"
     ],
     depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`),
     networks: {
@@ -183,7 +184,7 @@ output.services["mongo-express-config"] = {
     image: "mongo-express",
     depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`),
     ports: [
-        "8083:8081"
+        "127.0.0.1:8083:8081"
     ],
     environment: [
         "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
