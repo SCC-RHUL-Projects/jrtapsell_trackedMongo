@@ -14,7 +14,7 @@ RUN touch /stderr
 RUN chown mongodb:mongodb /stderr
 RUN chmod 666 /stderr
 
-RUN apt-get update && apt-get install libcurl3-gnutls
+RUN apt-get update && apt-get install libcurl3-gnutls gdbserver
 
 ADD ./entry.sh /entry.sh
 ADD ./mongos /usr/bin/mongos
