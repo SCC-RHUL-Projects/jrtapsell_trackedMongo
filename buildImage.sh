@@ -1,6 +1,7 @@
 #!/bin/bash
 strip --strip-all mongo/mongo*
-docker images purge
+docker rmi mongo_patched
+docker image prune -f > /dev/null
 cp mongo/mongod docker
 cp mongo/mongos docker
 docker build -t mongo_patched docker
