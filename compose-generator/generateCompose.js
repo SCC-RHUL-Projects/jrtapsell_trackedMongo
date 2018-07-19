@@ -17,6 +17,7 @@ function forHumanRange(count, action) {
 function buildMongo(name, additional) {
     return _.merge({
         container_name: name,
+        hostname: name,
         image: "mongo_patched",
         volumes: [
             "/etc/localtime:/etc/localtime:ro",
