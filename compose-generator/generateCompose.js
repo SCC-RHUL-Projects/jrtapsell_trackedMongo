@@ -9,30 +9,11 @@ const NUMBER_OF_ROUTERS = 2;
 function humanRange(count) {
     return _.range(1, count+1)
 }
+
 function forHumanRange(count, action) {
-    humanRange(count)
-        .forEach(d => {
-            action(d)
-        })
+    humanRange(count).forEach(d => {action(d)})
 }
 
-/*
-IP Allocations
-- 10.24
-    - 0 = ADMIN
-        - 1 = GATEWAY
-    - 1 = Shards
-        - XY = SHARD Y OF X
-    - 2 = Configs
-        - X = Config server X
-    - 3 = Routers
-        - X = Router X
-    - 4 = Router Viewers
-        - X = Router viewer X
-    - 5 = Viewers
-        - 1 = Shard Viewer
-        - 2 = Config viewer
- */
 const output = {
     version: "2",
     services: {},
@@ -62,16 +43,12 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
                 "/etc/localtime:/etc/localtime:ro",
                 `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.prov:/provenance`,
                 `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stdout:/stdout`,
-                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stderr:/stderr`
+                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stderr:/stderr`,
+                `$PWD/keyfile:/keyfile`
             ],
             ports: [
                 `127.0.0.1:271${shardNumber}${nodeNumber}:27017`
             ],
-            /*
-            tmpfs: [
-                "/data/db"
-            ],
-            */
             networks: {
                 clusternet: {
                     ipv4_address: `10.24.1.${shardNumber}${nodeNumber}`
@@ -93,6 +70,7 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
             `$PWD/logs/mongo_config${configNumber}.prov:/provenance`,
             `$PWD/logs/mongo_config${configNumber}.stdout:/stdout`,
             `$PWD/logs/mongo_config${configNumber}.stderr:/stderr`,
+            `$PWD/keyfile:/keyfile`
         ],
         ports: [
             `127.0.0.1:2720${configNumber}:27017`
@@ -109,18 +87,8 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         }
     }
 });
-/*
-mongo-express-data1:
-        container_name: mongo-express-data1
-        image: mongo-express
-        depends_on:
-            - mongos1
-        ports:
-            - '8081:8081'
-        environment:
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-            - ME_CONFIG_MONGODB_SERVER=mongos1
- */
+
+// Routers and express instances
 forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     const nodeName = `mongos${routerNumber}`;
     output.services[nodeName] = {
@@ -136,7 +104,8 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
             "/etc/localtime:/etc/localtime:ro",
             `$PWD/logs/mongos${routerNumber}.prov:/provenance`,
             `$PWD/logs/mongos${routerNumber}.stdout:/stdout`,
-            `$PWD/logs/mongos${routerNumber}.stderr:/stderr`
+            `$PWD/logs/mongos${routerNumber}.stderr:/stderr`,
+            `$PWD/keyfile:/keyfile`
         ],
         /*
         tmpfs: [
@@ -171,6 +140,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     }
 });
 
+//Shard viewer
 output.services["shard-viewer"] = {
     container_name: "shard-viewer",
     image: "shard-viewer",
@@ -185,6 +155,7 @@ output.services["shard-viewer"] = {
     }
 };
 
+//Config viewer
 output.services["mongo-express-config"] = {
     container_name: "mongo-express-config",
     image: "mongo-express",

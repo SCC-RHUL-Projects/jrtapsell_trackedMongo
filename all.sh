@@ -1,2 +1,2 @@
 #!/bin/bash
-./buildMongos.sh && ./buildImage.sh && ./launch.sh
+git pull && cd mongo && git pull && cd mongo && git pull && cd ../ && ./buildMongos.sh && ./buildImage.sh && ./launch.sh
