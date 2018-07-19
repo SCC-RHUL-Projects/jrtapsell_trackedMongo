@@ -2,6 +2,10 @@ FROM mongo:4.0-rc-xenial
 
 ENTRYPOINT ["/entry.sh"]
 
+RUN touch /keyfile
+RUN chown mongodb:mongodb /keyfile
+RUN chmod 600 /keyfile
+
 RUN touch /provenance
 RUN chown mongodb:mongodb /provenance
 RUN chmod 666 /provenance

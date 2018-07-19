@@ -49,6 +49,9 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
             ports: [
                 `127.0.0.1:271${shardNumber}${nodeNumber}:27017`
             ],
+            tmpfs: [
+                "/data/db"
+            ],
             networks: {
                 clusternet: {
                     ipv4_address: `10.24.1.${shardNumber}${nodeNumber}`
@@ -75,11 +78,9 @@ forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
         ports: [
             `127.0.0.1:2720${configNumber}:27017`
         ],
-        /*
         tmpfs: [
             "/data/db"
         ],
-        */
         networks: {
             clusternet: {
                 ipv4_address: `10.24.2.${configNumber}`
@@ -107,11 +108,9 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
             `$PWD/logs/mongos${routerNumber}.stderr:/stderr`,
             `$PWD/keyfile:/keyfile`
         ],
-        /*
         tmpfs: [
             "/data/db"
         ],
-        */
         networks: {
             clusternet: {
                 ipv4_address: `10.24.3.${routerNumber}`
