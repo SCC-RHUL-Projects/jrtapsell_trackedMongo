@@ -14,6 +14,23 @@ function forHumanRange(count, action) {
     humanRange(count).forEach(d => {action(d)})
 }
 
+function buildMongo(name, additional) {
+    return _.merge({
+        container_name: name,
+        image: "mongo_patched",
+        volumes: [
+            "/etc/localtime:/etc/localtime:ro",
+            `$PWD/logs/${name}.prov:/provenance`,
+            `$PWD/logs/${name}.stdout:/stdout`,
+            `$PWD/logs/${name}.stderr:/stderr`,
+            `$PWD/keyfile:/keyfile`
+        ],
+        tmpfs: [
+            "/data/db"
+        ],
+    }, additional)
+}
+
 const output = {
     version: "2",
     services: {},
@@ -35,88 +52,52 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
     forHumanRange(NUMBER_OF_NODES_PER_SHARD, nodeNumber => {
 
         const containerName = `mongo_shard${shardNumber}_node${nodeNumber}`;
-        output.services[containerName] = {
-            container_name: containerName,
-            image: "mongo_patched",
+        output.services[containerName] = buildMongo(containerName, {
             command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017 --bind_ip 0.0.0.0`,
-            volumes: [
-                "/etc/localtime:/etc/localtime:ro",
-                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.prov:/provenance`,
-                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stdout:/stdout`,
-                `$PWD/logs/mongo_shard${shardNumber}_node${nodeNumber}.stderr:/stderr`,
-                `$PWD/keyfile:/keyfile`
-            ],
             ports: [
                 `127.0.0.1:271${shardNumber}${nodeNumber}:27017`
-            ],
-            tmpfs: [
-                "/data/db"
             ],
             networks: {
                 clusternet: {
                     ipv4_address: `10.24.1.${shardNumber}${nodeNumber}`
                 }
             }
-        }
+        })
     })
 });
 
 //Config Nodes
 forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
     const name = `mongo_config${configNumber}`;
-    output.services[name] = {
-        container_name: name,
-        image: "mongo_patched",
+    output.services[name] = buildMongo(name, {
         command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017 --bind_ip 0.0.0.0",
-        volumes: [
-            "/etc/localtime:/etc/localtime:ro",
-            `$PWD/logs/mongo_config${configNumber}.prov:/provenance`,
-            `$PWD/logs/mongo_config${configNumber}.stdout:/stdout`,
-            `$PWD/logs/mongo_config${configNumber}.stderr:/stderr`,
-            `$PWD/keyfile:/keyfile`
-        ],
         ports: [
             `127.0.0.1:2720${configNumber}:27017`
-        ],
-        tmpfs: [
-            "/data/db"
         ],
         networks: {
             clusternet: {
                 ipv4_address: `10.24.2.${configNumber}`
             }
         }
-    }
+    })
 });
 
 // Routers and express instances
 forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     const nodeName = `mongos${routerNumber}`;
-    output.services[nodeName] = {
-        container_name: nodeName,
-        image: "mongo_patched",
+    output.services[nodeName] = buildMongo(nodeName, {
         depends_on: humanRange(2).map(p => `mongo_config${p}`),
         command: "mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017 --port 27017 --bind_ip 0.0.0.0",
         ports: [
             `127.0.0.1:2730${routerNumber}:27017`,
             `0.0.0.0:${27016+routerNumber}:27017`
         ],
-        volumes: [
-            "/etc/localtime:/etc/localtime:ro",
-            `$PWD/logs/mongos${routerNumber}.prov:/provenance`,
-            `$PWD/logs/mongos${routerNumber}.stdout:/stdout`,
-            `$PWD/logs/mongos${routerNumber}.stderr:/stderr`,
-            `$PWD/keyfile:/keyfile`
-        ],
-        tmpfs: [
-            "/data/db"
-        ],
         networks: {
             clusternet: {
                 ipv4_address: `10.24.3.${routerNumber}`
             }
         }
-    };
+    });
     const viewerName = `mongo-express-data${routerNumber}`;
     output.services[viewerName] = {
         "container_name": viewerName,
@@ -172,8 +153,5 @@ output.services["mongo-express-config"] = {
         }
     }
 };
-
-console.log(JSON.stringify(output));
-console.log(JSON.stringify(yaml.readSync("./target.yml")));
 
 yaml.writeSync("../cluster/mongo-sharded/docker-compose.yml", output);

@@ -1,159 +1,269 @@
 version: '2'
 services:
-    mongo_shard1_node1:
-        container_name: mongo_shard1_node1
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard1_node1:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_shard1_node2:
-        container_name: mongo_shard1_node2
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard1_node2:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_shard1_node3:
-        container_name: mongo_shard1_node3
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard1_node3:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_config1:
-        container_name: mongo_config1
-        image: mongo_patched
-        command: 'mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_config1:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_config2:
-        container_name: mongo_config2
-        image: mongo_patched
-        command: 'mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_config2:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_config3:
-        container_name: mongo_config3
-        image: mongo_patched
-        command: 'mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_config3:/provenance'
-        tmpfs:
-            - /data/db
-    mongo_shard2_node1:
-        container_name: mongo_shard2_node1
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard2_node1:/provenance'
-        ports:
-            - '27021:27017'
-        tmpfs:
-            - /data/db
-    mongo_shard2_node2:
-        container_name: mongo_shard2_node2
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard2_node2:/provenance'
-        ports:
-            - '27022:27017'
-        tmpfs:
-            - /data/db
-    mongo_shard2_node3:
-        container_name: mongo_shard2_node3
-        image: mongo_patched
-        command: 'mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongo_shard2_node3:/provenance'
-        ports:
-            - '27023:27017'
-        tmpfs:
-            - /data/db
-    mongos1:
-        container_name: mongos1
-        image: mongo_patched
-        depends_on:
-            - mongo_config1
-            - mongo_config2
-        command: 'mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017 --port 27017 --bind_ip 0.0.0.0'
-        ports:
-            - '27019:27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongos1:/provenance'
-        tmpfs:
-            - /data/db
-    mongos2:
-        container_name: mongos2
-        image: mongo_patched
-        depends_on:
-            - mongo_config1
-            - mongo_config2
-        command: 'mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017  --port 27017 --bind_ip 0.0.0.0'
-        ports:
-            - '27020:27017'
-        volumes:
-            - '/etc/localtime:/etc/localtime:ro'
-            - '$PWD/logs/mongos2:/provenance'
-        tmpfs:
-            - /data/db
-    mongo-express-data1:
-        container_name: mongo-express-data1
-        image: mongo-express
-        depends_on:
-            - mongos1
-        ports:
-            - '8081:8081'
-        environment:
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-            - ME_CONFIG_MONGODB_SERVER=mongos1
-    mongo-express-data2:
-        container_name: mongo-express-data2
-        image: mongo-express
-        depends_on:
-            - mongos2
-        ports:
-            - '8082:8081'
-        environment:
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-            - ME_CONFIG_MONGODB_SERVER=mongos2
-    mongo-express-config:
-        container_name: mongo-express-config
-        image: mongo-express
-        depends_on:
-            - mongo_config1
-            - mongo_config2
-            - mongo_config3
-        ports:
-            - '8083:8081'
-        environment:
-            - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-            - 'ME_CONFIG_MONGODB_SERVER=mongo_config1,mongo_config2,mongo_config3'
-    shard-viewer:
-        container_name: shard-viewer
-        image: shard-viewer
-        ports:
-            - '8084:3000'
-        depends_on:
-            - mongo_config1
-            - mongo_config2
-            - mongo_config3
-
+  mongo_shard1_node1:
+    container_name: mongo_shard1_node1
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard1_node1.prov:/provenance'
+      - '$PWD/logs/mongo_shard1_node1.stdout:/stdout'
+      - '$PWD/logs/mongo_shard1_node1.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27111:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.11
+  mongo_shard1_node2:
+    container_name: mongo_shard1_node2
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard1_node2.prov:/provenance'
+      - '$PWD/logs/mongo_shard1_node2.stdout:/stdout'
+      - '$PWD/logs/mongo_shard1_node2.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27112:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.12
+  mongo_shard1_node3:
+    container_name: mongo_shard1_node3
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard1_node3.prov:/provenance'
+      - '$PWD/logs/mongo_shard1_node3.stdout:/stdout'
+      - '$PWD/logs/mongo_shard1_node3.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27113:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.13
+  mongo_shard2_node1:
+    container_name: mongo_shard2_node1
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard2_node1.prov:/provenance'
+      - '$PWD/logs/mongo_shard2_node1.stdout:/stdout'
+      - '$PWD/logs/mongo_shard2_node1.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27121:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.21
+  mongo_shard2_node2:
+    container_name: mongo_shard2_node2
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard2_node2.prov:/provenance'
+      - '$PWD/logs/mongo_shard2_node2.stdout:/stdout'
+      - '$PWD/logs/mongo_shard2_node2.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27122:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.22
+  mongo_shard2_node3:
+    container_name: mongo_shard2_node3
+    image: mongo_patched
+    command: >-
+      mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_shard2_node3.prov:/provenance'
+      - '$PWD/logs/mongo_shard2_node3.stdout:/stdout'
+      - '$PWD/logs/mongo_shard2_node3.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27123:27017'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.1.23
+  mongo_config1:
+    container_name: mongo_config1
+    image: mongo_patched
+    command: >-
+      mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_config1.prov:/provenance'
+      - '$PWD/logs/mongo_config1.stdout:/stdout'
+      - '$PWD/logs/mongo_config1.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27201:27017'
+    tmpfs:
+      - /data/db
+    networks:
+      clusternet:
+        ipv4_address: 10.24.2.1
+  mongo_config2:
+    container_name: mongo_config2
+    image: mongo_patched
+    command: >-
+      mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_config2.prov:/provenance'
+      - '$PWD/logs/mongo_config2.stdout:/stdout'
+      - '$PWD/logs/mongo_config2.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27202:27017'
+    tmpfs:
+      - /data/db
+    networks:
+      clusternet:
+        ipv4_address: 10.24.2.2
+  mongo_config3:
+    container_name: mongo_config3
+    image: mongo_patched
+    command: >-
+      mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
+      --bind_ip 0.0.0.0
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongo_config3.prov:/provenance'
+      - '$PWD/logs/mongo_config3.stdout:/stdout'
+      - '$PWD/logs/mongo_config3.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    ports:
+      - '127.0.0.1:27203:27017'
+    tmpfs:
+      - /data/db
+    networks:
+      clusternet:
+        ipv4_address: 10.24.2.3
+  mongos1:
+    container_name: mongos1
+    image: mongo_patched
+    depends_on:
+      - mongo_config1
+      - mongo_config2
+    command: >-
+      mongos --configdb
+      mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017
+      --port 27017 --bind_ip 0.0.0.0
+    ports:
+      - '127.0.0.1:27301:27017'
+      - '0.0.0.0:27017:27017'
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongos1.prov:/provenance'
+      - '$PWD/logs/mongos1.stdout:/stdout'
+      - '$PWD/logs/mongos1.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    tmpfs:
+      - /data/db
+    networks:
+      clusternet:
+        ipv4_address: 10.24.3.1
+  mongo-express-data1:
+    container_name: mongo-express-data1
+    image: mongo-express
+    depends_on:
+      - mongos1
+    ports:
+      - '127.0.0.1:8081:8081'
+    environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_SERVER=mongos1
+    networks:
+      clusternet:
+        ipv4_address: 10.24.4.1
+  mongos2:
+    container_name: mongos2
+    image: mongo_patched
+    depends_on:
+      - mongo_config1
+      - mongo_config2
+    command: >-
+      mongos --configdb
+      mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017
+      --port 27017 --bind_ip 0.0.0.0
+    ports:
+      - '127.0.0.1:27302:27017'
+      - '0.0.0.0:27018:27017'
+    volumes:
+      - '/etc/localtime:/etc/localtime:ro'
+      - '$PWD/logs/mongos2.prov:/provenance'
+      - '$PWD/logs/mongos2.stdout:/stdout'
+      - '$PWD/logs/mongos2.stderr:/stderr'
+      - '$PWD/keyfile:/keyfile'
+    tmpfs:
+      - /data/db
+    networks:
+      clusternet:
+        ipv4_address: 10.24.3.2
+  mongo-express-data2:
+    container_name: mongo-express-data2
+    image: mongo-express
+    depends_on:
+      - mongos2
+    ports:
+      - '127.0.0.1:8082:8081'
+    environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_SERVER=mongos2
+    networks:
+      clusternet:
+        ipv4_address: 10.24.4.2
+  shard-viewer:
+    container_name: shard-viewer
+    image: shard-viewer
+    ports:
+      - '127.0.0.1:8084:3000'
+    depends_on:
+      - mongo_config1
+      - mongo_config2
+      - mongo_config3
+    networks:
+      clusternet:
+        ipv4_address: 10.24.5.1
+  mongo-express-config:
+    container_name: mongo-express-config
+    image: mongo-express
+    depends_on:
+      - mongo_config1
+      - mongo_config2
+      - mongo_config3
+    ports:
+      - '127.0.0.1:8083:8081'
+    environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - 'ME_CONFIG_MONGODB_SERVER=mongo_config1,mongo_config2,mongo_config3'
+    networks:
+      clusternet:
+        ipv4_address: 10.24.5.2
+networks:
+  clusternet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.24.0.0/16
+          gateway: 10.24.0.1
