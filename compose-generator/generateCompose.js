@@ -54,7 +54,7 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
 
         const containerName = `mongo_shard${shardNumber}_node${nodeNumber}`;
         output.services[containerName] = buildMongo(containerName, {
-            command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017 --bind_ip 0.0.0.0`,
+            command: `mongod --shardsvr --replSet mongors${shardNumber} --dbpath /data/db --port 27017 --bind_ip 0.0.0.0 --keyFile /keyfile`,
             ports: [
                 `127.0.0.1:271${shardNumber}${nodeNumber}:27017`
             ],
@@ -71,7 +71,7 @@ forHumanRange(NUMBER_OF_SHARDS, shardNumber => {
 forHumanRange(NUMBER_OF_CONFIGS, (configNumber) => {
     const name = `mongo_config${configNumber}`;
     output.services[name] = buildMongo(name, {
-        command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017 --bind_ip 0.0.0.0",
+        command: "mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017 --bind_ip 0.0.0.0 --keyFile /keyfile",
         ports: [
             `127.0.0.1:2720${configNumber}:27017`
         ],
@@ -88,7 +88,7 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
     const nodeName = `mongos${routerNumber}`;
     output.services[nodeName] = buildMongo(nodeName, {
         depends_on: humanRange(2).map(p => `mongo_config${p}`),
-        command: "mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017 --port 27017 --bind_ip 0.0.0.0",
+        command: "mongos --configdb mongors1conf/mongo_config1:27017,mongo_config2:27017,mongo_config3:27017 --port 27017 --bind_ip 0.0.0.0 --keyFile /keyfile",
         ports: [
             `127.0.0.1:2730${routerNumber}:27017`,
             `0.0.0.0:${27016+routerNumber}:27017`
@@ -132,25 +132,6 @@ output.services["shard-viewer"] = {
     networks: {
         clusternet: {
             ipv4_address: `10.24.5.1`
-        }
-    }
-};
-
-//Config viewer
-output.services["mongo-express-config"] = {
-    container_name: "mongo-express-config",
-    image: "mongo-express",
-    depends_on: humanRange(NUMBER_OF_CONFIGS).map(p => `mongo_config${p}`),
-    ports: [
-        "127.0.0.1:8083:8081"
-    ],
-    environment: [
-        "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
-        "ME_CONFIG_MONGODB_SERVER=mongo_config1,mongo_config2,mongo_config3"
-    ],
-    networks: {
-        clusternet: {
-            ipv4_address: `10.24.5.2`
         }
     }
 };
