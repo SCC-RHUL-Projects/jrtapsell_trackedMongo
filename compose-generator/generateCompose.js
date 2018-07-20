@@ -111,7 +111,10 @@ forHumanRange(NUMBER_OF_ROUTERS, (routerNumber) => {
         ],
         environment: [
             "ME_CONFIG_MONGODB_ENABLE_ADMIN=true",
-            `ME_CONFIG_MONGODB_SERVER=${nodeName}`
+            `ME_CONFIG_MONGODB_SERVER=${nodeName}`,
+            `ME_CONFIG_MONGODB_AUTH_DATABASE=admin`,
+            `ME_CONFIG_MONGODB_ADMINUSERNAME=admin`,
+            `ME_CONFIG_MONGODB_ADMINPASSWORD=password`
         ],
         networks: {
             clusternet: {
