@@ -7,7 +7,7 @@ idna==2.7
 ipaddress==1.0.22
 Markdown==2.6.11
 packaging==17.1
-pyasn1==0.4.3
+pyasn1==0.6.2
 pycparser==2.18
 pyparsing==2.2.0
 PyYAML==3.12
